@@ -331,16 +331,15 @@ dm.network.dea.pmsg <-
         res.zsl.s1 <- res.s1$yslack[, (s.s1 + 1):(s.s1 + p), drop = F]
         
         # Zero-weighting: Penalize Z if pre-mortem stackelberg game is ON, skip for inefficient DMU(s) otherwise
-        if(pm == FALSE){
-          if(orientation == "i" & rts == "vrs"){
-            id.ineff  <- which(round(res.eff.s1, 8) != 1)
-            id.zero.u <- which(round(rowSums(dm.dea(xdata.s1, cbind(ydata.s1, zdata), rts, orientation)$u), 8) == 0)
-            o         <- setdiff(o, intersect(id.ineff, id.zero.u))
-          }
+        if(pm == FALSE & orientation == "i" & rts == "vrs"){
+          id.zero.p <- which(res.zsl.s1 > 0)
+          o.calc    <- setdiff(o, id.zero.p)
+        }else{
+          o.calc <- o
         }
         
         # Follower
-        for(k in o){
+        for(k in o.calc){
           # Declare LP
           lp.ndea <- make.lp(0, no.dv.t) # v1+u1+p+w1+v2+u2+w2
           
@@ -446,16 +445,15 @@ dm.network.dea.pmsg <-
         res.zsl.s2 <- res.s2$xslack
         
         # Zero-weighting: Penalize Z if pre-mortem stackelberg game is ON, skip for inefficient DMU(s) otherwise
-        if(pm == FALSE){
-          if(orientation == "o" & rts == "vrs"){
-            id.ineff  <- which(round(res.eff.s2, 8) != 1)
-            id.zero.v <- which(round(rowSums(dm.dea(cbind(xdata.s2, zdata), ydata.s2, rts, orientation)$v), 8) == 0)
-            o         <- setdiff(o, intersect(id.ineff, id.zero.v))
-          }
+        if(pm == FALSE & orientation == "o" & rts == "vrs"){
+          id.zero.p <- which(res.zsl.s2 > 0)
+          o.calc    <- setdiff(o, id.zero.p)
+        }else{
+          o.calc <- o
         }
         
         # Follower
-        for(k in o){
+        for(k in o.calc){
           # Declare LP
           lp.ndea <- make.lp(0, no.dv.t) # v1+u1+p+w1+v2+u2+w2
           
@@ -477,12 +475,13 @@ dm.network.dea.pmsg <-
           
           # Constraint for o
           if(orientation == "o"){
-            add.constraint(lp.ndea, c(-zdata[k,] / res.eff.s2[k,], 
+            add.constraint(lp.ndea, c(if(pm == TRUE & all(res.zsl.s2[k,] > 0)) -(zdata[k,] - res.zsl.s2[k,]) / res.eff.s2[k,] else -zdata[k,] / res.eff.s2[k,],
                                       if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / res.eff.s2[k,],
                                       ydata.s2[k,], -1/res.eff.s2[k,]), 
                            indices = c(id.p, if(is.null(xdata.s2)) NULL else id.v.s2, id.u.s2, id.w.s2), "=", 0)
             
-            add.constraint(lp.ndea, c(zdata[k,], if(is.null(xdata.s2)) NULL else xdata.s2[k,]), 
+            add.constraint(lp.ndea, c(if(pm == TRUE & all(res.zsl.s2[k,] > 0)) zdata[k,] - res.zsl.s2[k,] else zdata[k,],
+                                      if(is.null(xdata.s2)) NULL else xdata.s2[k,]), 
                            indices = c(id.p, if(is.null(xdata.s2)) NULL else id.v.s2), "=", 1)  
           }
           if(orientation == "i"){
@@ -499,12 +498,21 @@ dm.network.dea.pmsg <-
           # Constraint for all
           for(d in o){
             # Stage 1
-            add.constraint(lp.ndea, c(-xdata.s1[d,], 
-                                      if(is.null(ydata.s1)) NULL else ydata.s1[d,],
-                                      zdata[d,], -1), 
-                           indices = c(id.v.s1, 
-                                       if(is.null(ydata.s1)) NULL else id.u.s1, 
-                                       id.p, id.w.s1), "<=", 0)
+            if(d == k & pm == TRUE & all(res.zsl.s2[k,] > 0)){
+              add.constraint(lp.ndea, c(-xdata.s1[d,], 
+                                        if(is.null(ydata.s1)) NULL else ydata.s1[d,],
+                                        zdata[d,] - res.zsl.s2[k,], -1), 
+                             indices = c(id.v.s1, 
+                                         if(is.null(ydata.s1)) NULL else id.u.s1, 
+                                         id.p, id.w.s1), "<=", 0)
+            }else{
+              add.constraint(lp.ndea, c(-xdata.s1[d,], 
+                                        if(is.null(ydata.s1)) NULL else ydata.s1[d,],
+                                        zdata[d,], -1), 
+                             indices = c(id.v.s1, 
+                                         if(is.null(ydata.s1)) NULL else id.u.s1, 
+                                         id.p, id.w.s1), "<=", 0)  
+            }
             
             # Stage 2
             add.constraint(lp.ndea, c(-zdata[d,],
