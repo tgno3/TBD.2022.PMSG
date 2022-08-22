@@ -454,7 +454,7 @@ dm.network.dea.pmsg <-
             res.v.s2[k,]    <- if(is.null(xdata.s2)) NA else res.all[id.v.s2]
             res.u.s2[k,]    <- res.all[id.u.s2]
             res.w.s2[k,]    <- res.all[id.w.s2]
-            res.z.shift[k,] <- if(pm == TRUE) round(res.all[-c(1:no.dv.t)] / res.p[k,], 8) - zdata[k,] else NA
+            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pos.sls) round(res.all[-c(1:no.dv.t)] / res.p[k,], 8) - zdata[k,] else rep(NA, p)
             res.eff.s2[k,]  <- abs(get.objective(lp.ndea))
           }
         }
