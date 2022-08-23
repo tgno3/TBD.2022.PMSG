@@ -45,6 +45,7 @@ dm.network.dea.pmsg <-
     id.v.s2 <- if(is.null(xdata.s2)) 0 else (m.s1 + s.s1 + p + 2):(m.s1 + s.s1 + p + 1 + m.s2)
     id.u.s2 <- (m.s1 + s.s1 + p + 1 + m.s2 + 1):(m.s1 + s.s1 + p + 1 + m.s2 + s.s2)
     id.w.s2 <- no.dv.t
+    id.a    <- (no.dv.t + 1):(no.dv.t + p)
     
     # Analysis
     if(type == "co"){ # Centralized / Cooperative game
@@ -326,22 +327,17 @@ dm.network.dea.pmsg <-
     }else{ # Decentralized aka Stackelberg game
       
       if(leader == "1st"){
+        
         # Leader
         res.s1     <- dm.dea(xdata.s1, cbind(ydata.s1, zdata), rts, orientation)
         res.eff.s1 <- res.s1$eff
         res.zsl.s1 <- res.s1$yslack[, (s.s1 + 1):(s.s1 + p), drop = F]
-        
-        # Zero-weighting: Penalize Z if pre-mortem Stackelberg game is ON, skip for non-E type DMU(s) with wz = 0 otherwise
-        #id.E.type  <- which(round(res.eff.s1, 8) == 1 & round(rowSums(res.s1$yslack), 8) == 0)
-        #id.zero.wz <- which(rowSums(res.s1$u * zdata) == 0)
-        #id.out     <- intersect(setdiff(o, id.E.type), id.zero.wz)
         id.pos.sls <- which(apply(res.zsl.s1, 1, prod) > 0)
-        o.calc     <- o
-        
+
         # Follower
-        for(k in o.calc){
+        for(k in o){
           # Declare LP
-          lp.ndea <- make.lp(0, no.dv.t + p) # v1+u1+p+w1+v2+u2+w2 + a
+          lp.ndea <- make.lp(0, no.dv.t + p) # v1+u1+p+w1+v2+u2+w2+a(=wz.hat)
           
           # Labeling
           temp <- c(paste0("v1", 1:m.s1), if(!is.null(ydata.s1)) paste0("u1", 1:s.s1),
@@ -359,9 +355,11 @@ dm.network.dea.pmsg <-
           
           # Constraint for o
           if(orientation == "o"){
+            # Retain L's Efficiency
             add.constraint(lp.ndea, c(-xdata.s1[k,] / res.eff.s1[k,], ydata.s1[k,], zdata[k,], -1/res.eff.s1[k,]), 
                            indices = c(id.v.s1, if(is.null(ydata.s1)) NULL else id.u.s1, id.p, id.w.s1), "=", 0)
             
+            # CCT
             add.constraint(lp.ndea, ydata.s2[k,], indices = id.u.s2, "=", 1)  
           }
           if(orientation == "i"){
@@ -372,16 +370,12 @@ dm.network.dea.pmsg <-
                                       -1),
                            indices = c(id.v.s1,
                                        if(is.null(ydata.s1)) NULL else id.u.s1,
-                                       if(pm == TRUE & k %in% id.pos.sls) (no.dv.t + 1):(no.dv.t + p) else id.p,
+                                       if(pm == TRUE & k %in% id.pos.sls) id.a else id.p,
                                        id.w.s1), "=", 0)
             
             # CCT
-            if(pm == TRUE & k %in% id.pos.sls){
-              if(is.null(xdata.s2)){
-                add.constraint(lp.ndea, rep(1, p), indices = (no.dv.t + 1):(no.dv.t + p), "=", 1)
-              }else{
-                stop("DJL is busy to implemented the IO-VRS-PMSG model with x.2")
-              }
+            if(pm == TRUE & k %in% id.pos.sls & is.null(xdata.s2)){
+              add.constraint(lp.ndea, rep(1, p), indices = id.a, "=", 1)
             }else{
               add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else xdata.s2[k,], zdata[k,]), 
                              indices = c(if(is.null(xdata.s2)) NULL else id.v.s2, id.p), "=", 1)  
@@ -397,7 +391,7 @@ dm.network.dea.pmsg <-
                                       -1),
                            indices = c(id.v.s1,
                                        if(is.null(ydata.s1)) NULL else id.u.s1,
-                                       if(d == k & pm == TRUE & k %in% id.pos.sls) (no.dv.t + 1):(no.dv.t + p) else id.p,
+                                       if(d == k & pm == TRUE & k %in% id.pos.sls) id.a else id.p,
                                        id.w.s1), "<=", 0)
             
             # Stage 2
@@ -405,7 +399,7 @@ dm.network.dea.pmsg <-
                                       if(is.null(xdata.s2)) NULL else -xdata.s2[d,],
                                       ydata.s2[d,],
                                       -1),
-                           indices = c(if(d == k & pm == TRUE & k %in% id.pos.sls) (no.dv.t + 1):(no.dv.t + p) else id.p,
+                           indices = c(if(d == k & pm == TRUE & k %in% id.pos.sls) id.a else id.p,
                                        if(is.null(xdata.s2)) NULL else id.v.s2,
                                        id.u.s2,
                                        id.w.s2), "<=", 0)
@@ -414,8 +408,8 @@ dm.network.dea.pmsg <-
           # Constraint for alpha
           if(pm == TRUE & k %in% id.pos.sls){
             for(q in 1:p){
-              add.constraint(lp.ndea, c(1, -zdata[k, q]), indices = c(no.dv.t + q, id.p[q]), ">=", 0)
-              add.constraint(lp.ndea, c(1, -zdata[k, q] - res.zsl.s1[k, q]), indices = c(no.dv.t + q, id.p[q]), "<=", 0)
+              add.constraint(lp.ndea, c(1, -zdata[k, q]), indices = c(id.a[q], id.p[q]), ">=", 0)
+              add.constraint(lp.ndea, c(1, -zdata[k, q] - res.zsl.s1[k, q]), indices = c(id.a[q], id.p[q]), "<=", 0)
             }  
           }
           
@@ -454,7 +448,7 @@ dm.network.dea.pmsg <-
             res.v.s2[k,]    <- if(is.null(xdata.s2)) NA else res.all[id.v.s2]
             res.u.s2[k,]    <- res.all[id.u.s2]
             res.w.s2[k,]    <- res.all[id.w.s2]
-            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pos.sls) round(res.all[-c(1:no.dv.t)] / res.p[k,], 8) - zdata[k,] else rep(NA, p)
+            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pos.sls) round(res.all[id.a] / res.all[id.p], 8) - zdata[k,] else rep(NA, p)
             res.eff.s2[k,]  <- abs(get.objective(lp.ndea))
           }
         }
@@ -465,26 +459,17 @@ dm.network.dea.pmsg <-
         res.s2     <- dm.dea(cbind(xdata.s2, zdata), ydata.s2, rts, orientation)
         res.eff.s2 <- res.s2$eff
         res.zsl.s2 <- res.s2$xslack[, (m.s2 + 1):(m.s2 + p), drop = F]
-        
-        # Zero-weighting: Penalize Z if pre-mortem Stackelberg game is ON, skip for inefficient DMU(s) with wz = 0 otherwise
-        if(pm == FALSE & orientation == "o" & rts == "vrs"){
-          id.E.type  <- which(round(res.eff.s1, 8) == 1 & round(rowSums(res.s1$yslack), 8) == 0)
-          id.zero.wz <- which(rowSums(res.s1$u * zdata) == 0)
-          id.out     <- intersect(setdiff(o, id.E.type), id.zero.wz)
-          o.calc     <- setdiff(o, id.out)
-        }else{
-          o.calc <- o
-        }
+        id.pos.sls <- which(apply(res.zsl.s2, 1, prod) > 0)
         
         # Follower
-        for(k in o.calc){
+        for(k in o){
           # Declare LP
-          lp.ndea <- make.lp(0, no.dv.t) # v1+u1+p+w1+v2+u2+w2
+          lp.ndea <- make.lp(0, no.dv.t + p) # v1+u1+p+w1+v2+u2+w2+a(=wz.hat)
           
           # Labeling
           temp <- c(paste0("v1", 1:m.s1), if(!is.null(ydata.s1)) paste0("u1", 1:s.s1),
-                    paste0("p", 1:p), paste0("w1"), if(!is.null(xdata.s2)) paste0("v2", 1:m.s2), 
-                    paste0("u2", 1:s.s2), paste0("w2"))
+                    paste0("p", 1:p), "w1", if(!is.null(xdata.s2)) paste0("v2", 1:m.s2), 
+                    paste0("u2", 1:s.s2), "w2", paste0("a", 1:p))
           dimnames(lp.ndea)[[2]] <- temp
           
           # Objective
@@ -499,57 +484,71 @@ dm.network.dea.pmsg <-
           
           # Constraint for o
           if(orientation == "o"){
-            add.constraint(lp.ndea, c(if(pm == TRUE & all(res.zsl.s2[k,] > 0)) -(zdata[k,] - res.zsl.s2[k,]) / res.eff.s2[k,] else -zdata[k,] / res.eff.s2[k,],
+            # Retain L's Efficiency
+            add.constraint(lp.ndea, c(if(pm == TRUE & k %in% id.pos.sls) rep(-1 / res.eff.s2[k,], p) else -zdata[k,] / res.eff.s2[k,],
                                       if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / res.eff.s2[k,],
-                                      ydata.s2[k,], -1/res.eff.s2[k,]), 
-                           indices = c(id.p, if(is.null(xdata.s2)) NULL else id.v.s2, id.u.s2, id.w.s2), "=", 0)
+                                      ydata.s2[k,], 
+                                      -1/res.eff.s2[k,]), 
+                           indices = c(if(pm == TRUE & k %in% id.pos.sls) id.a else id.p, 
+                                       if(is.null(xdata.s2)) NULL else id.v.s2, 
+                                       id.u.s2, 
+                                       id.w.s2), "=", 0)
             
-            add.constraint(lp.ndea, c(if(pm == TRUE & all(res.zsl.s2[k,] > 0)) zdata[k,] - res.zsl.s2[k,] else zdata[k,],
-                                      if(is.null(xdata.s2)) NULL else xdata.s2[k,]), 
-                           indices = c(id.p, if(is.null(xdata.s2)) NULL else id.v.s2), "=", 1)  
+            # CCT
+            if(pm == TRUE & k %in% id.pos.sls & is.null(ydata.s1)){
+              add.constraint(lp.ndea, rep(1, p), indices = id.a, "=", 1)
+            }else{
+              add.constraint(lp.ndea, c(if(is.null(ydata.s1)) NULL else ydata.s1[k,], zdata[k,]), 
+                             indices = c(if(is.null(ydata.s1)) NULL else id.u.s1, id.p), "=", 1)  
+            }
           }
           if(orientation == "i"){
+            # Retain L's Efficiency
             add.constraint(lp.ndea, c(-zdata[k,] * res.eff.s2[k,], 
                                       if(is.null(xdata.s2)) NULL else -xdata.s2[k,] * res.eff.s2[k,], 
                                       ydata.s2[k,], -1), 
                            indices = c(id.p, 
                                        if(is.null(xdata.s2)) NULL else id.v.s2, 
                                        id.u.s2, id.w.s1), "=", 0)
-            
+
+            # CCT
             add.constraint(lp.ndea, c(xdata.s1[k,]), indices = c(id.v.s1), "=", 1)
           }
           
           # Constraint for all
           for(d in o){
             # Stage 1
-            if(d == k & pm == TRUE & all(res.zsl.s2[k,] > 0)){
-              add.constraint(lp.ndea, c(-xdata.s1[d,], 
-                                        if(is.null(ydata.s1)) NULL else ydata.s1[d,],
-                                        zdata[d,] - res.zsl.s2[k,], -1), 
-                             indices = c(id.v.s1, 
-                                         if(is.null(ydata.s1)) NULL else id.u.s1, 
-                                         id.p, id.w.s1), "<=", 0)
-            }else{
-              add.constraint(lp.ndea, c(-xdata.s1[d,], 
-                                        if(is.null(ydata.s1)) NULL else ydata.s1[d,],
-                                        zdata[d,], -1), 
-                             indices = c(id.v.s1, 
-                                         if(is.null(ydata.s1)) NULL else id.u.s1, 
-                                         id.p, id.w.s1), "<=", 0)  
-            }
+            add.constraint(lp.ndea, c(-xdata.s1[d,],
+                                      if(is.null(ydata.s1)) NULL else ydata.s1[d,],
+                                      if(d == k & pm == TRUE & k %in% id.pos.sls) rep(1, p) else zdata[d,],
+                                      -1),
+                           indices = c(id.v.s1,
+                                       if(is.null(ydata.s1)) NULL else id.u.s1,
+                                       if(d == k & pm == TRUE & k %in% id.pos.sls) id.a else id.p,
+                                       id.w.s1), "<=", 0)
             
             # Stage 2
-            add.constraint(lp.ndea, c(-zdata[d,],
+            add.constraint(lp.ndea, c(if(d == k & pm == TRUE & k %in% id.pos.sls) rep(-1, p) else -zdata[d,],
                                       if(is.null(xdata.s2)) NULL else -xdata.s2[d,],
-                                      ydata.s2[d,], -1), 
-                           indices = c(id.p, 
-                                       if(is.null(xdata.s2)) NULL else id.v.s2, 
-                                       id.u.s2, id.w.s2), "<=", 0)  
+                                      ydata.s2[d,],
+                                      -1),
+                           indices = c(if(d == k & pm == TRUE & k %in% id.pos.sls) id.a else id.p,
+                                       if(is.null(xdata.s2)) NULL else id.v.s2,
+                                       id.u.s2,
+                                       id.w.s2), "<=", 0)
+          }  
+          
+          # Constraint for alpha
+          if(pm == TRUE & k %in% id.pos.sls){
+            for(q in 1:p){
+              add.constraint(lp.ndea, c(1, -zdata[k, q] + res.zsl.s2[k, q]), indices = c(id.a[q], id.p[q]), ">=", 0)
+              add.constraint(lp.ndea, c(1, -zdata[k, q]), indices = c(id.a[q], id.p[q]), "<=", 0)
+            }  
           }
           
           # Bounds for VRS/IRS
-          temp.lb <- rep(  0, no.dv.t)
-          temp.ub <- rep(Inf, no.dv.t)
+          temp.lb <- rep(  0, no.dv.t + p)
+          temp.ub <- rep(Inf, no.dv.t + p)
           if(rts == "vrs"){temp.lb[c(id.w.s1, id.w.s2)] <- -Inf}
           if(rts == "irs"){temp.lb[c(id.w.s1, id.w.s2)] <- -Inf; temp.ub[c(id.w.s1, id.w.s2)] <- 0}
           set.bounds(lp.ndea, lower = temp.lb, upper = temp.ub)  
@@ -575,15 +574,18 @@ dm.network.dea.pmsg <-
           }
           
           # Get results
-          res.all        <- get.variables(lp.ndea)
-          res.v.s1[k,]   <- res.all[id.v.s1]
-          res.u.s1[k,]   <- if(is.null(ydata.s1)) NA else res.all[id.u.s1]
-          res.p[k,]      <- res.all[id.p]
-          res.w.s1[k,]   <- res.all[id.w.s1]
-          res.v.s2[k,]   <- if(is.null(xdata.s2)) NA else res.all[id.v.s2]
-          res.u.s2[k,]   <- res.all[id.u.s2]
-          res.w.s2[k,]   <- res.all[id.w.s2]
-          res.eff.s1[k,] <- abs(get.objective(lp.ndea))
+          if(solve.lpExtPtr(lp.ndea) == 0){
+            res.all         <- get.variables(lp.ndea)
+            res.v.s1[k,]    <- res.all[id.v.s1]
+            res.u.s1[k,]    <- if(is.null(ydata.s1)) NA else res.all[id.u.s1]
+            res.p[k,]       <- res.all[id.p]
+            res.w.s1[k,]    <- res.all[id.w.s1]
+            res.v.s2[k,]    <- if(is.null(xdata.s2)) NA else res.all[id.v.s2]
+            res.u.s2[k,]    <- res.all[id.u.s2]
+            res.w.s2[k,]    <- res.all[id.w.s2]
+            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pos.sls) round(res.all[id.a] / res.all[id.p], 8) - zdata[k,] else rep(NA, p)
+            res.eff.s1[k,]  <- abs(get.objective(lp.ndea))
+          }
         }
       }
     }
