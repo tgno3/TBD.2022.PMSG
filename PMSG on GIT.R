@@ -20,6 +20,12 @@ load("PMSG.Rdata")
 ### Analysis
 #########################################################################################################################
 
+# DB data
+dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")
+dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)
+dm.dea(xdata = df.db[,1:2], ydata = df.db[,3:4], rts = "vrs", orientation = "i")$yslack
+
+
 # Toy 1
 xdata.s1 <- df.toy.1[,1]
 zdata    <- df.toy.1[,2]
