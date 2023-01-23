@@ -39,7 +39,7 @@ dm.network.dea.pmsg <-
     # Indices for coding convenience
     no.dv.t <- (m.s1 + s.s1 + p + 1 + m.s2 + s.s2 + 1) 
     id.v.s1 <- 1:m.s1
-    id.u.s1 <- if(is.null(ydata.s1)) 0 else m.s1 + s.s1
+    id.u.s1 <- if(is.null(ydata.s1)) 0 else (m.s1 + 1):(m.s1 + s.s1)
     id.p    <- (m.s1 + s.s1 + 1):(m.s1 + s.s1 + p)
     id.w.s1 <-  m.s1 + s.s1 + p + 1
     id.v.s2 <- if(is.null(xdata.s2)) 0 else (m.s1 + s.s1 + p + 2):(m.s1 + s.s1 + p + 1 + m.s2)
@@ -585,10 +585,10 @@ dm.network.dea.pmsg <-
               delete.constraint(lp.ndea, dim(lp.ndea)[1] - 1)
               
               # Relax efficiency retain constraint
-              add.constraint(lp.ndea, c(if(pm == TRUE & k %in% id.pmsg) rep(-1/round(res.eff.s2[k,], 6), p) else -zdata[k,] / round(res.eff.s2[k,], 6),
-                                        if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / round(res.eff.s2[k,], 6),
+              add.constraint(lp.ndea, c(if(pm == TRUE & k %in% id.pmsg) rep(round(-1/res.eff.s2[k,], 8), p) else round(-zdata[k,]/res.eff.s2[k,], 8),
+                                        if(is.null(xdata.s2)) NULL else round(-xdata.s2[k,]/res.eff.s2[k,], 8),
                                         ydata.s2[k,],
-                                        -1/round(res.eff.s2[k,], 6)),
+                                        round(-1/res.eff.s2[k,], 8)),
                              indices = c(if(pm == TRUE & k %in% id.pmsg) id.a else id.p,
                                          if(is.null(xdata.s2)) NULL else id.v.s2,
                                          id.u.s2,

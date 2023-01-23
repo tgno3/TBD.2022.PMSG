@@ -200,9 +200,16 @@ dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.1, ydata.s2 = df.db[
 dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.2, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
 dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.1.2, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
 
+dm.network.dea(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")$eff.s2
 dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
+
+dm.network.dea(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd")$eff.s1
 dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
 
+# remove DMU 34 & 48
+df.db.46 <- df.db[-c(34, 48),]
+dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
+dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
 
 
 #########################################################################################################################
