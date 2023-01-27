@@ -9,7 +9,7 @@
 #########################################################################################################################
 
 # Load library
-pkgs <- c("DJL", "rgl")
+pkgs <- c("DJL")
 sapply(pkgs, require, character.only = T)
 
 # Load data & parameters
@@ -207,9 +207,29 @@ dm.network.dea(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:
 dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
 
 # remove DMU 34 & 48
-df.db.46 <- df.db[-c(34, 48),]
-dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
+df.db.46 <- df.db
+# df.db.46 <- df.db[-c(34, 48),]
+
+
+# Table 2. Comparative results of network efficiencies
+res.LF.io.conv <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
+                                      rts = "vrs", orientation = "i", leader = "1st", pm = F)
+res.LF.io.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
+                                      rts = "vrs", orientation = "i", leader = "1st", pm = T)
+res.FL.oo.conv <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
+                                      rts = "vrs", orientation = "o", leader = "2nd", pm = F)
+res.FL.oo.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
+                                      rts = "vrs", orientation = "o", leader = "2nd", pm = T)
+
+table.2 <- data.frame(DMU           = 1:nrow(df.db.46),
+                      Eff.L.io      = res.LF.io.conv$eff.s1,
+                      Eff.F.io.conv = res.LF.io.conv$eff.s2,
+                      Eff.F.io.pmsg = res.LF.io.pmsg$eff.s2,
+                      Sft.F.io.pmsg = res.LF.io.pmsg$z.shift,
+                      Eff.L.oo      = res.FL.oo.conv$eff.s2,
+                      Eff.F.oo.conv = res.FL.oo.conv$eff.s1,
+                      Eff.F.oo.pmsg = res.FL.oo.pmsg$eff.s1,
+                      Sft.F.oo.pmsg = res.FL.oo.pmsg$z.shift)
 
 
 #########################################################################################################################
