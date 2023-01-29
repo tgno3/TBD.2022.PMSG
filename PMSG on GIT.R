@@ -94,117 +94,22 @@ load("PMSG.Rdata")
   dm.dea(df.toy.3[,4:5], df.toy.3[,6:7], rts = "vrs", orientation = "i")$xslack
   dm.dea(df.toy.4[,1:2], df.toy.4[,3:7], rts = "vrs", orientation = "i")$yslack
   dm.dea(df.toy.4[,3:7], df.toy.4[,8:9], rts = "vrs", orientation = "i")$xslack
-
-  # Visualize - Z - Y
-  plot3d(df.toy.5[,2], df.toy.5[,3], df.toy.5[,4], col = "red", box = F, type = "s", radius = 0.3, axes = T, 
-         xlim = c(0, 15), ylim = c(0, 15), zlim = c(0, 40),
-         xlab = "z1", ylab = "z2", zlab = "y1")
-  text3d(df.toy.5[,2], df.toy.5[,3], df.toy.5[,4] + 2, texts = 1:6, col="red")
-  
-  # Free disposability
-  for(i in 1:4){
-    rgl.lines(c(df.toy.5$z1[i], df.toy.5$z1[i]), c(df.toy.5$z2[i], df.toy.5$z2[i]), c(0, df.toy.5$y[i]), color="red") # y-
-    rgl.lines(c(15, df.toy.5$z1[i]), c(df.toy.5$z2[i], df.toy.5$z2[i]), c(df.toy.5$y[i], df.toy.5$y[i]), color="red") # z1+
-    rgl.lines(c(df.toy.5$z1[i], df.toy.5$z1[i]), c(15, df.toy.5$z2[i]), c(df.toy.5$y[i], df.toy.5$y[i]), color="red") # z2+
-  }
-  
-  rgl.lines(c(df.toy.5$z1[4], df.toy.5$z1[4]), c(df.toy.5$z2[4], df.toy.5$z2[4]), c(0, df.toy.5$y[4]), color="red") # 4 - y-
-  rgl.lines(c(df.toy.5$z1[1], df.toy.5$z1[1]), c(df.toy.5$z2[1], df.toy.5$z2[1]), c(0, df.toy.5$y[1]), color="red") # 1 - y-
-  rgl.lines(c(df.toy.5$z1[2], df.toy.5$z1[2]), c(df.toy.5$z2[2], df.toy.5$z2[2]), c(0, df.toy.5$y[2]), color="red") # 2 - y-
-  rgl.lines(c(df.toy.5$z1[3], df.toy.5$z1[3]), c(df.toy.5$z2[3], df.toy.5$z2[3]), c(0, df.toy.5$y[3]), color="red") # 3 - y-
-  rgl.lines(c(15, df.toy.5$z1[4]), c(df.toy.5$z2[4], df.toy.5$z2[4]), c(df.toy.5$y[4], df.toy.5$y[4]), color="red") # 4 - z1+
-  rgl.lines(c(15, df.toy.5$z1[1]), c(df.toy.5$z2[1], df.toy.5$z2[1]), c(df.toy.5$y[1], df.toy.5$y[1]), color="red") # 1 - z1+
-  rgl.lines(c(15, df.toy.5$z1[2]), c(df.toy.5$z2[2], df.toy.5$z2[2]), c(df.toy.5$y[2], df.toy.5$y[2]), color="red") # 2 - z1+
-  rgl.lines(c(15, df.toy.5$z1[3]), c(df.toy.5$z2[3], df.toy.5$z2[3]), c(df.toy.5$y[3], df.toy.5$y[3]), color="red") # 3 - z1+
-  
-  rgl.lines(c(df.toy.5$z1[4], df.toy.5$z1[4]), c(15, df.toy.5$z2[4]), c(df.toy.5$y[4], df.toy.5$y[4]), color="red") # 4 - z2+
-  rgl.lines(c(df.toy.5$z1[1], df.toy.5$z1[1]), c(15, df.toy.5$z2[1]), c(df.toy.5$y[1], df.toy.5$y[1]), color="red") # 1 - z2+
-  
-  rgl.lines(c(X$x1[3], X$x1[3]), c(X$x2[3], 12), c(Y$y1[3], Y$y1[3]), color="red") # C - x2
-  rgl.lines(c(X$x1[3], X$x1[3]), c(X$x2[3], 12), c(0,             0), color="red") # C - x2 - 0
-  rgl.lines(c(X$x1[4], X$x1[4]), c(X$x2[4], 12), c(Y$y1[4], Y$y1[4]), color="red") # D - x2
-  rgl.lines(c(X$x1[3], 12), c(X$x2[3], X$x2[3]), c(Y$y1[3], Y$y1[3]), color="red") # C - x1
-  rgl.lines(c(X$x1[3], 12), c(X$x2[3], X$x2[3]), c(0,             0), color="red") # C - x1 - 0
-  rgl.lines(c(X$x1[6], 12), c(X$x2[6], X$x2[6]), c(Y$y1[6], Y$y1[6]), color="red") # F - x1
-  rgl.lines(c(X$x1[4], 12), c(X$x2[4], X$x2[4]), c(Y$y1[4], Y$y1[4]), color="red") # D - x1
-  rgl.lines(c(X$x1[3], X$x1[3]), c(X$x2[3], X$x2[3]), c(Y$y1[3],  0), color="red") # C - x3
-  
-  # Convexity
-  rgl.lines(c(X$x1[1], X$x1[3]), c(X$x2[1], X$x2[3]), c(Y$y1[1], Y$y1[3]), color="red") # A-C
-  rgl.lines(c(X$x1[1], X$x1[4]), c(X$x2[1], X$x2[4]), c(Y$y1[1], Y$y1[4]), color="red") # A-D
-  rgl.lines(c(X$x1[1], X$x1[5]), c(X$x2[1], X$x2[5]), c(Y$y1[1], Y$y1[5]), color="red") # A-E
-  rgl.lines(c(X$x1[3], X$x1[5]), c(X$x2[3], X$x2[5]), c(Y$y1[3], Y$y1[5]), color="red") # C-E
-  rgl.lines(c(X$x1[6], X$x1[5]), c(X$x2[6], X$x2[5]), c(Y$y1[6], Y$y1[5]), color="red") # E-F
-  rgl.lines(c(X$x1[5], X$x1[4]), c(X$x2[5], X$x2[4]), c(Y$y1[5], Y$y1[4]), color="red") # E-D
-  
-  # Clear
-  rgl.clear()
 }
 
+# Validation
+res.LF.i.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+res.LF.i.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
 
-# Comparison
-res.sl.w       <- dm.dea(xdata = df.db[,1:2], ydata = df.db[,3:4], rts = "vrs", orientation = "i")$yslack
-res.w          <- dm.dea(xdata = df.db[,1:2], ydata = df.db[,3:4], rts = "vrs", orientation = "i")$u
-res.eff.2.cv   <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")$eff.s2
-res.eff.2.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-res.z.shift    <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$z.shift
+res.LF.o.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = F)$eff.s2
+res.LF.o.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = T)$eff.s2
 
-data.frame(res.sl.w, res.eff.2.cv, res.eff.2.pmsg, res.z.shift)
+res.FL.i.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = F)$eff.s1
+res.FL.i.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = T)$eff.s1
 
-
-# Post-hoc analysis
-# Case 1: min shifts applied
-res.pmsg         <- dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st", pm = T)
-z.shift.min      <- res.pmsg$z.shift
-z.df.std.min     <- df.toy.4[,3:7]
-z.df.std.min[k,] <- df.toy.4[k, 3:7] + replace(z.shift.min[k,], sapply(z.shift.min[k,], is.nan), 0)
-dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = z.df.std.min, ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st")
-
-# Case 2: all slacks applied
-z.shift.all      <- dm.dea(df.toy.4[,1:2], df.toy.4[,3:7], rts = "vrs", orientation = "i")$yslack[k,]
-z.df.std.all     <- df.toy.4[,3:7]
-z.df.std.all[k,] <- df.toy.4[k, 3:7] + z.shift.all
-dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = z.df.std.all, ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st")
-
-# Case 3: shifts manually applied
-z.df.std.man     <- df.toy.4[,3:7]
-z.df.std.man[k,] <- df.toy.4[k, 3:7] + c(0, 5, 0, 0, 0)
-dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = z.df.std.man, ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st")
-
-# Discussion table - debug
-id.dmu       <- 31
-res.yslack.c <- dm.dea(xdata = df.db[,1:2], ydata = df.db[,3:4], rts = "vrs", orientation = "i")$yslack
-res.u.c      <- dm.dea(xdata = df.db[,1:2], ydata = df.db[,3:4], rts = "vrs", orientation = "i")$u
-res.eff.2.c  <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")$eff.s2
-data.frame(res.yslack.c, round(res.u.c, 8), res.eff.2.c)
-
-# Add slack of the first z
-df.db.z.1    <- df.db[,3:4]; df.db.z.1[id.dmu, 1] <- df.db.z.1[id.dmu, 1] + res.yslack[id.dmu, 1]
-
-# Add slack of the second z
-df.db.z.2    <- df.db[,3:4]; df.db.z.2[id.dmu, 2] <- df.db.z.2[id.dmu, 2] + res.yslack[id.dmu, 2]
-res.yslack.s <- dm.dea(xdata = df.db[,1:2], ydata = df.db.z.2, rts = "vrs", orientation = "i")$yslack
-res.u.s      <- dm.dea(xdata = df.db[,1:2], ydata = df.db.z.2, rts = "vrs", orientation = "i")$u
-res.eff.2.s  <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.2, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")$eff.s2
-data.frame(res.yslack.s, round(res.u.s, 8), res.eff.2.s)
-
-res.eff.2.s <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.2, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")$eff.s2
-
-df.db.z.1.2 <- df.db[,3:4]; df.db.z.1.2[id.dmu,] <- df.db.z.1.2[id.dmu,] + res.yslack[id.dmu,]
+res.FL.o.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = F)$eff.s1
+res.FL.o.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
 
 
-
-
-
-dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.1, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.2, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db.z.1.2, ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-
-dm.network.dea(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st")$eff.s2
-dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-
-dm.network.dea(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd")$eff.s1
-dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
 
 # remove DMU 34 & 48
 df.db.46 <- df.db

@@ -333,8 +333,8 @@ dm.network.dea.pmsg.2 <-
         res.s1     <- dm.dea(xdata.s1, cbind(ydata.s1, zdata), rts, orientation)
         res.eff.s1 <- res.s1$eff
         res.zsl.s1 <- res.s1$yslack[, (s.s1 + 1):(s.s1 + p), drop = F]
-        # id.pmsg    <- which(apply(res.s1$yslack[, (s.s1 + 1):(s.s1 + p), drop = F], 1, sum) > 0)
-        id.pmsg    <- which(apply(res.s1$u[, (s.s1 + 1):(s.s1 + p), drop = F], 1, sum) == 0)
+        res.u.s1.t <- res.s1$u[, (s.s1 + 1):(s.s1 + p), drop = F]
+        id.pmsg    <- which(apply(res.u.s1.t, 1, sum) == 0)
         
         # Follower
         for(k in o){
@@ -348,49 +348,47 @@ dm.network.dea.pmsg.2 <-
           dimnames(lp.ndea)[[2]] <- temp
           
           # Objective
-          if(orientation == "o") set.objfn(lp.ndea, c(if(is.null(xdata.s2)) NULL else xdata.s2[k,], zdata[k,], 1), 
-                                           indices = c(if(is.null(xdata.s2)) NULL else id.v.s2, id.p, id.w.s2))
-          if(orientation == "i") set.objfn(lp.ndea, c(-ydata.s2[k,], 1, rep(M, p)), indices = c(id.u.s2, id.w.s2, id.a))
+          if(orientation == "o") set.objfn(lp.ndea, c(xdata.s2[k,], zdata[k,], 1), indices = c(id.v.s2, id.p, id.w.s2))
+          if(orientation == "i") set.objfn(lp.ndea, c(-ydata.s2[k,], 1, rep(M * max(res.u.s1.t[k,]), p)), indices = c(id.u.s2, id.w.s2, id.a))
           
           # CRS
           if(rts == "crs") add.constraint(lp.ndea, c(1, 1), indices = c(id.w.s1, id.w.s2), "=", 0)
           
+          # Back to the conventional NDEA
+          if(pm == FALSE | orientation == "o") add.constraint(lp.ndea, rep(1, p), indices = id.a, "=", 0)
+          
+          # Constraint for all
+          for(d in o){
+            # Stage 1
+            add.constraint(lp.ndea, c(-xdata.s1[d,], ydata.s1[d,], zdata[d,], -1),
+                           indices = c(id.v.s1, id.u.s1, id.p, id.w.s1), "<=", 0)
+            
+            # Stage 2
+            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[d,], -zdata[d,], ydata.s2[d,], -1, if(d == k) rep(-1, p)),
+                           indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, if(d == k) id.a), "<=", 0)  
+          } 
+          
+          # Constraint for alpha
+          for(q in 1:p){
+            add.constraint(lp.ndea, c(-res.zsl.s1[k, q], 1), indices = c(id.p[q], id.a[q]), "<=", 0)
+          }
+          
           # Constraint for o
           if(orientation == "o"){
             # Retain L's Efficiency
-            add.constraint(lp.ndea, c(-xdata.s1[k,] / res.eff.s1[k,], ydata.s1[k,], zdata[k,], -1/res.eff.s1[k,]), 
-                           indices = c(id.v.s1, if(is.null(ydata.s1)) NULL else id.u.s1, id.p, id.w.s1), "=", 0)
+            add.constraint(lp.ndea, c(-xdata.s1[k,] / res.eff.s1[k,], zdata[k,], ydata.s1[k,], -1/res.eff.s1[k,], rep(1, p)), 
+                           indices = c(id.v.s1, id.p, id.u.s1, id.w.s1, id.a), "=", 0)
             
             # CCT
             add.constraint(lp.ndea, ydata.s2[k,], indices = id.u.s2, "=", 1)  
           }
           if(orientation == "i"){
             # Retain L's Efficiency
-            add.constraint(lp.ndea, c(-xdata.s1[k,] * res.eff.s1[k,], ydata.s1[k,], zdata[k,], rep(1, p), -1),
-                           indices = c(id.v.s1, id.u.s1, id.p, id.a, id.w.s1), "=", 0)
+            add.constraint(lp.ndea, c(-xdata.s1[k,] * res.eff.s1[k,], ydata.s1[k,], zdata[k,], -1, rep(1, p)),
+                           indices = c(id.v.s1, id.u.s1, id.p, id.w.s1, id.a), "=", 0)
             
             # CCT
-            add.constraint(lp.ndea, c(xdata.s2[k,], zdata[k,], rep(1, p)), 
-                           indices = c(id.v.s2, id.p, id.a), "=", 1)
-          }
-          
-          # Constraint for all
-          for(d in o){
-
-            # Stage 1
-            add.constraint(lp.ndea, c(-xdata.s1[d,], ydata.s1[d,], zdata[d,], -1),
-                           indices = c(id.v.s1, id.u.s1, id.p, id.w.s1), "<=", 0)
-            
-            # Stage 2
-            add.constraint(lp.ndea, c(if(d == k & pm == TRUE) rep(-1, p) else -zdata[d,], -1 * xdata.s2[d,], -zdata[d,], ydata.s2[d,], -1),
-                           indices = c(if(d == k & pm == TRUE) id.a else id.p, id.v.s2, id.p, id.u.s2, id.w.s2), "<=", 0)  
-          }  
-          
-          # Constraint for alpha
-          if(pm == TRUE){
-            for(q in 1:p){
-              add.constraint(lp.ndea, c(1, -res.zsl.s1[k, q]), indices = c(id.a[q], id.p[q]), "<=", 0)
-            }  
+            add.constraint(lp.ndea, c(xdata.s2[k,], zdata[k,], rep(1, p)), indices = c(id.v.s2, id.p, id.a), "=", 1)
           }
           
           # Bounds for VRS/IRS
@@ -406,8 +404,8 @@ dm.network.dea.pmsg.2 <-
           # Plan B for multiple optima
           if(solve.lpExtPtr(lp.ndea) == 3){
             if(orientation == "o"){
-              # Constraint for o: v1x1 + w1 = 1
-              add.constraint(lp.ndea, c(xdata.s1[k,], 1), indices = c(id.v.s1, id.w.s1), "=", 1)  
+              # Constraint for o: wz (+ u1y1) = 1
+              add.constraint(lp.ndea, c(zdata[k,], ydata.s1[k,]), indices = c(id.p, id.u.s1), "=", 1)  
             }
             if(orientation == "i"){
               # Constraint for o: v1x1 = 1
@@ -420,29 +418,18 @@ dm.network.dea.pmsg.2 <-
           
           # Plan C for numerical failure
           if(solve.lpExtPtr(lp.ndea) == 5){
+            # Remove efficiency retain constraint
+            delete.constraint(lp.ndea, dim(lp.ndea)[1] - 1)
+            
             if(orientation == "o"){
-              # Remove efficiency retain constraint
-              delete.constraint(lp.ndea, dim(lp.ndea)[1] - 1)
-              
-              # Relax efficiency retain constraint
-              add.constraint(lp.ndea, c(if(pm == TRUE & k %in% id.pmsg) rep(round(-1/res.eff.s2[k,], 8), p) else round(-zdata[k,]/res.eff.s2[k,], 8),
-                                        if(is.null(xdata.s2)) NULL else round(-xdata.s2[k,]/res.eff.s2[k,], 8),
-                                        ydata.s2[k,],
-                                        round(-1/res.eff.s2[k,], 8)),
-                             indices = c(if(pm == TRUE & k %in% id.pmsg) id.a else id.p,
-                                         if(is.null(xdata.s2)) NULL else id.v.s2,
-                                         id.u.s2,
-                                         id.w.s2), "=", 0)
+              # Maybe not necessary
             }
             if(orientation == "i"){
-              # Remove efficiency retain constraint
-              delete.constraint(lp.ndea, 1)
-              
               # Relax efficiency retain constraint
               add.constraint(lp.ndea, c(round(-xdata.s1[k,] * res.eff.s1[k,], 8), ydata.s1[k,], zdata[k,], rep(1, p), -1),
                              indices = c(id.v.s1, id.u.s1, id.p, id.a, id.w.s1), "=", 0)
             }
-            
+
             # Re-solve
             solve.lpExtPtr(lp.ndea)
           }
@@ -457,8 +444,8 @@ dm.network.dea.pmsg.2 <-
             res.v.s2[k,]    <- if(is.null(xdata.s2)) NA else res.all[id.v.s2]
             res.u.s2[k,]    <- res.all[id.u.s2]
             res.w.s2[k,]    <- res.all[id.w.s2]
-            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pmsg) round(res.all[id.a] / res.all[id.p], 8) - zdata[k,] else rep(NA, p)
-            res.eff.s2[k,]  <- abs(get.objective(lp.ndea))
+            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pmsg) round(res.all[id.a] / res.all[id.p], 8) else rep(NA, p)
+            res.eff.s2[k,]  <- if(orientation == "i") abs(get.objective(lp.ndea)) + sum(rep(M * max(res.u.s1.t[k,]), p) * res.all[id.a]) else abs(get.objective(lp.ndea))
           }
         }
         
@@ -468,13 +455,13 @@ dm.network.dea.pmsg.2 <-
         res.s2     <- dm.dea(cbind(xdata.s2, zdata), ydata.s2, rts, orientation)
         res.eff.s2 <- res.s2$eff
         res.zsl.s2 <- res.s2$xslack[, (m.s2 + 1):(m.s2 + p), drop = F]
-        # id.pmsg    <- which(apply(res.s2$xslack[, (m.s2 + 1):(m.s2 + p), drop = F], 1, prod) > 0)
-        id.pmsg    <- which(apply(res.s2$v[, (m.s2 + 1):(m.s2 + p), drop = F], 1, sum) == 0)
+        res.v.s2.t <- res.s2$v[, (m.s2 + 1):(m.s2 + p), drop = F]
+        id.pmsg    <- which(apply(res.v.s2.t, 1, sum) == 0)
         
         # Follower
         for(k in o){
           # Declare LP
-          lp.ndea <- make.lp(0, no.dv.t + p) # v1+u1+p+w1+v2+u2+w2+a(=wz.hat)
+          lp.ndea <- make.lp(0, no.dv.t + p) # v1+u1+p+w1+v2+u2+w2+a(=wH)
           
           # Labeling
           temp <- c(paste0("v1", 1:m.s1), if(!is.null(ydata.s1)) paste0("u1", 1:s.s1),
@@ -483,74 +470,44 @@ dm.network.dea.pmsg.2 <-
           dimnames(lp.ndea)[[2]] <- temp
           
           # Objective
-          if(orientation == "o") set.objfn(lp.ndea, c(xdata.s1[k,], 1), indices = c(id.v.s1, id.w.s1))
-          if(orientation == "i") set.objfn(lp.ndea, c(-zdata[k,], 
-                                                      if(is.null(ydata.s1)) NULL else -ydata.s1[k,], 1),
-                                           indices = c(id.p, 
-                                                       if(is.null(ydata.s1)) NULL else id.u.s1, id.w.s1))
+          if(orientation == "o") set.objfn(lp.ndea, c(xdata.s1[k,], 1, rep(M * max(res.v.s2.t[k,]), p)), indices = c(id.v.s1, id.w.s1, id.a))
+          if(orientation == "i") set.objfn(lp.ndea, c(-zdata[k,], if(is.null(ydata.s1)) NULL else -ydata.s1[k,], 1), indices = c(id.p, id.u.s1, id.w.s1))
           
           # CRS
           if(rts == "crs") add.constraint(lp.ndea, c(1, 1), indices = c(id.w.s1, id.w.s2), "=", 0)
           
+          # Back to the conventional NDEA
+          if(pm == FALSE | orientation == "i") add.constraint(lp.ndea, rep(1, p), indices = id.a, "=", 0)
+          
           # Constraint for all
           for(d in o){
             # Stage 1
-            add.constraint(lp.ndea, c(-xdata.s1[d,],
-                                      if(is.null(ydata.s1)) NULL else ydata.s1[d,],
-                                      if(d == k & pm == TRUE & k %in% id.pmsg) rep(1, p) else zdata[d,],
-                                      -1),
-                           indices = c(id.v.s1,
-                                       if(is.null(ydata.s1)) NULL else id.u.s1,
-                                       if(d == k & pm == TRUE & k %in% id.pmsg) id.a else id.p,
-                                       id.w.s1), "<=", 0)
+            add.constraint(lp.ndea, c(-xdata.s1[d,], ydata.s1[d,], zdata[d,], -1),
+                           indices = c(id.v.s1, id.u.s1, id.p, id.w.s1), "<=", 0)
             
             # Stage 2
-            add.constraint(lp.ndea, c(if(d == k & pm == TRUE & k %in% id.pmsg) rep(-1, p) else -zdata[d,],
-                                      if(is.null(xdata.s2)) NULL else -xdata.s2[d,],
-                                      ydata.s2[d,],
-                                      -1),
-                           indices = c(if(d == k & pm == TRUE & k %in% id.pmsg) id.a else id.p,
-                                       if(is.null(xdata.s2)) NULL else id.v.s2,
-                                       id.u.s2,
-                                       id.w.s2), "<=", 0)
+            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[d,], -zdata[d,], ydata.s2[d,], -1, if(d == k) rep(1, p)),
+                           indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, if(d == k) id.a), "<=", 0)
           }
           
           # Constraint for alpha
-          if(pm == TRUE & k %in% id.pmsg){
-            for(q in 1:p){
-              add.constraint(lp.ndea, c(1, -zdata[k, q] + res.zsl.s2[k, q]), indices = c(id.a[q], id.p[q]), ">=", 0)
-              add.constraint(lp.ndea, c(1, -zdata[k, q]), indices = c(id.a[q], id.p[q]), "<=", 0)
-            }  
+          for(q in 1:p){
+            add.constraint(lp.ndea, c(-res.zsl.s2[k, q], 1), indices = c(id.p[q], id.a[q]), "<=", 0)
           }
-          
+
           # Constraint for o
           if(orientation == "o"){
             # Retain L's Efficiency
-            add.constraint(lp.ndea, c(if(pm == TRUE & k %in% id.pmsg) rep(-1/res.eff.s2[k,], p) else -zdata[k,] / res.eff.s2[k,],
-                                      if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / res.eff.s2[k,],
-                                      ydata.s2[k,],
-                                      -1/res.eff.s2[k,]),
-                           indices = c(if(pm == TRUE & k %in% id.pmsg) id.a else id.p,
-                                       if(is.null(xdata.s2)) NULL else id.v.s2,
-                                       id.u.s2,
-                                       id.w.s2), "=", 0)
-            
+            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / res.eff.s2[k,], -zdata[k,] / res.eff.s2[k,], ydata.s2[k,], -1/res.eff.s2[k,], rep(1, p)), 
+                           indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), "=", 0)
+
             # CCT
-            if(pm == TRUE & k %in% id.pmsg & is.null(ydata.s1)){
-              add.constraint(lp.ndea, rep(1, p), indices = id.a, "=", 1)
-            }else{
-              add.constraint(lp.ndea, c(if(is.null(ydata.s1)) NULL else ydata.s1[k,], zdata[k,]), 
-                             indices = c(if(is.null(ydata.s1)) NULL else id.u.s1, id.p), "=", 1)  
-            }
+            add.constraint(lp.ndea, c(ydata.s1[k,], zdata[k,], rep(-1, p)), indices = c(id.u.s1, id.p, id.a), "=", 1)
           }
           if(orientation == "i"){
             # Retain L's Efficiency
-            add.constraint(lp.ndea, c(-zdata[k,] * res.eff.s2[k,], 
-                                      if(is.null(xdata.s2)) NULL else -xdata.s2[k,] * res.eff.s2[k,], 
-                                      ydata.s2[k,], -1), 
-                           indices = c(id.p, 
-                                       if(is.null(xdata.s2)) NULL else id.v.s2, 
-                                       id.u.s2, id.w.s1), "=", 0)
+            add.constraint(lp.ndea, c(-zdata[k,] * res.eff.s2[k,], if(is.null(xdata.s2)) NULL else -xdata.s2[k,] * res.eff.s2[k,], ydata.s2[k,], -1), 
+                           indices = c(id.p, id.v.s2, id.u.s2, id.w.s2), "=", 0)
             
             # CCT
             add.constraint(lp.ndea, c(xdata.s1[k,]), indices = c(id.v.s1), "=", 1)
@@ -569,17 +526,12 @@ dm.network.dea.pmsg.2 <-
           # Plan B for multiple optima
           if(solve.lpExtPtr(lp.ndea) == 3){
             if(orientation == "o"){
-              # Constraint for o: pz + (v2x2) + w2 = 1
-              add.constraint(lp.ndea, c(zdata[k,], if(is.null(xdata.s2)) NULL else xdata.s2[k,], 1),
-                             indices = c(id.p, if(is.null(xdata.s2)) NULL else id.v.s2, id.w.s2), "=", 1)
-              # Constraint for o: uy = 1
-              # add.constraint(lp.ndea, c(ydata.s2[k,]),
-              #                indices = c(id.u.s2), "=", 1)
+              #Constraint for o: uy = 1
+              add.constraint(lp.ndea, c(ydata.s2[k,]), indices = c(id.u.s2), "=", 1)
             }
             if(orientation == "i"){
               # Constraint for o: pz + (v2x2) = 1
-              add.constraint(lp.ndea, c(zdata[k,], if(is.null(xdata.s2)) NULL else xdata.s2[k,]), 
-                             indices = c(id.p, if(is.null(xdata.s2)) NULL else id.v.s2), "=", 1)
+              add.constraint(lp.ndea, c(zdata[k,], xdata.s2[k,]), indices = c(id.p, id.v.s2), "=", 1)
             }
             
             # Re-solve
@@ -588,24 +540,20 @@ dm.network.dea.pmsg.2 <-
           
           # Plan C for numerical failure
           if(solve.lpExtPtr(lp.ndea) == 5){
+            # Remove efficiency retain constraint
+            delete.constraint(lp.ndea, dim(lp.ndea)[1] - 1)
+
             if(orientation == "o"){
-              # Remove efficiency retain constraint
-              delete.constraint(lp.ndea, dim(lp.ndea)[1] - 1)
-              
               # Relax efficiency retain constraint
-              add.constraint(lp.ndea, c(if(pm == TRUE & k %in% id.pmsg) rep(round(-1/res.eff.s2[k,], 8), p) else round(-zdata[k,]/res.eff.s2[k,], 8),
-                                        if(is.null(xdata.s2)) NULL else round(-xdata.s2[k,]/res.eff.s2[k,], 8),
-                                        ydata.s2[k,],
-                                        round(-1/res.eff.s2[k,], 8)),
-                             indices = c(if(pm == TRUE & k %in% id.pmsg) id.a else id.p,
-                                         if(is.null(xdata.s2)) NULL else id.v.s2,
-                                         id.u.s2,
-                                         id.w.s2), "=", 0)
+              add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else round(-xdata.s2[k,] / res.eff.s2[k,], 9),
+                                        round(-zdata[k,] / res.eff.s2[k,], 9), ydata.s2[k,],
+                                        round(-1/res.eff.s2[k,], 9), rep(1, p)),
+                             indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), "=", 0)
             }
             if(orientation == "i"){
-              # TBA
+              # Maybe not necessary
             }
-            
+
             # Re-solve
             solve.lpExtPtr(lp.ndea)
           }
@@ -620,8 +568,8 @@ dm.network.dea.pmsg.2 <-
             res.v.s2[k,]    <- if(is.null(xdata.s2)) NA else res.all[id.v.s2]
             res.u.s2[k,]    <- res.all[id.u.s2]
             res.w.s2[k,]    <- res.all[id.w.s2]
-            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pmsg) round(res.all[id.a] / res.all[id.p], 8) - zdata[k,] else rep(NA, p)
-            res.eff.s1[k,]  <- abs(get.objective(lp.ndea))
+            res.z.shift[k,] <- if(pm == TRUE & k %in% id.pmsg) round(res.all[id.a] / res.all[id.p], 8) else rep(NA, p)
+            res.eff.s1[k,]  <- if(orientation == "o") abs(get.objective(lp.ndea)) - sum(rep(M * max(res.v.s2.t[k,]), p) * res.all[id.a]) else abs(get.objective(lp.ndea))
           }
         }
       }
