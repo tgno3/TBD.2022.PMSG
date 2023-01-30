@@ -1,7 +1,7 @@
 # Revised NDEA function for the pre-mortem Stackelberg game
 dm.network.dea.pmsg.2 <-
   function(xdata.s1, ydata.s1 = NULL, zdata, xdata.s2 = NULL, ydata.s2, 
-           rts = "crs", orientation = "i", type = "nc", leader = "1st", ss = 10^-4, pm = FALSE, o = NULL){
+           rts = "crs", orientation = "i", type = "nc", leader = "1st", ss = 10^-4, tr = 10^-8, pm = FALSE, o = NULL){
     
     # Initial checks
     if(is.na(match(rts, c("crs", "vrs", "irs", "drs")))) stop('rts must be "crs", "vrs", "irs", or "drs".')
@@ -482,12 +482,12 @@ dm.network.dea.pmsg.2 <-
           # Constraint for all
           for(d in o){
             # Stage 1
-            add.constraint(lp.ndea, c(-xdata.s1[d,], ydata.s1[d,], zdata[d,], -1),
-                           indices = c(id.v.s1, id.u.s1, id.p, id.w.s1), "<=", 0)
+            add.constraint(lp.ndea, c(-xdata.s1[d,], ydata.s1[d,], zdata[d,], -1, if(d == k) rep(-1, p)),
+                           indices = c(id.v.s1, id.u.s1, id.p, id.w.s1, if(d == k) id.a), "<=", 0)
             
             # Stage 2
-            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[d,], -zdata[d,], ydata.s2[d,], -1, if(d == k) rep(1, p)),
-                           indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, if(d == k) id.a), "<=", 0)
+            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[d,], -zdata[d,], ydata.s2[d,], -1),
+                           indices = c(id.v.s2, id.p, id.u.s2, id.w.s2), "<=", 0)
           }
           
           # Constraint for alpha
@@ -498,7 +498,9 @@ dm.network.dea.pmsg.2 <-
           # Constraint for o
           if(orientation == "o"){
             # Retain L's Efficiency
-            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / res.eff.s2[k,], -zdata[k,] / res.eff.s2[k,], ydata.s2[k,], -1/res.eff.s2[k,], rep(1, p)), 
+            # add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[k,] / res.eff.s2[k,], -zdata[k,] / res.eff.s2[k,], ydata.s2[k,], -1/res.eff.s2[k,], rep(1, p)), 
+            #                indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), "=", 0)
+            add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[k,], -zdata[k,], ydata.s2[k,] * res.eff.s2[k,], -1, rep(1, p)), 
                            indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), "=", 0)
 
             # CCT
@@ -549,6 +551,10 @@ dm.network.dea.pmsg.2 <-
                                         round(-zdata[k,] / res.eff.s2[k,], 9), ydata.s2[k,],
                                         round(-1/res.eff.s2[k,], 9), rep(1, p)),
                              indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), "=", 0)
+              # add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[k,], -zdata[k,], ydata.s2[k,] * res.eff.s2[k,], -1, rep(1, p)), 
+              #                indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), "<=", 0 + tr)
+              # add.constraint(lp.ndea, c(if(is.null(xdata.s2)) NULL else -xdata.s2[k,], -zdata[k,], ydata.s2[k,] * res.eff.s2[k,], -1, rep(1, p)), 
+              #                indices = c(id.v.s2, id.p, id.u.s2, id.w.s2, id.a), ">=", 0 - tr)
             }
             if(orientation == "i"){
               # Maybe not necessary

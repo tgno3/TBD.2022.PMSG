@@ -64,50 +64,33 @@ load("PMSG.Rdata")
   xdata.s2 <- ydata.s1 <- NULL
   rts      <- "vrs"; orientation <- "i"; type <- "nc"; leader <- "1st"; ss <- 10^-4; pm <- TRUE; o <- NULL
   rts      <- "vrs"; orientation <- "o"; type <- "nc"; leader <- "2nd"; ss <- 10^-4; pm <- TRUE; o <- NULL
+
+  # Validation w DB
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = T)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = F)$eff.s1
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = T)$eff.s1
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = F)$eff.s1
+  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
   
-  # Run the original model
-  dm.network.dea.pmsg(xdata.s1 = df.toy.1[,  1], zdata = df.toy.1[,  2], ydata.s2 = df.toy.1[,  3], rts = "vrs", orientation = "i", leader = "1st")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.1[,  1], zdata = df.toy.1[,  2], ydata.s2 = df.toy.1[,  3], rts = "vrs", orientation = "o", leader = "2nd")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.2[,  1], zdata = df.toy.2[,2:3], ydata.s2 = df.toy.2[,  4], rts = "vrs", orientation = "i", leader = "1st")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.2[,  1], zdata = df.toy.2[,2:3], ydata.s2 = df.toy.2[,  4], rts = "vrs", orientation = "o", leader = "2nd")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.3[,1:3], zdata = df.toy.3[,4:5], ydata.s2 = df.toy.3[,6:7], rts = "vrs", orientation = "i", leader = "1st")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.3[,1:3], zdata = df.toy.3[,4:5], ydata.s2 = df.toy.3[,6:7], rts = "vrs", orientation = "o", leader = "2nd")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st")
-  dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "o", leader = "2nd")
+  # Validation w toy.1
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.1[,1], zdata = df.toy.1[,2], ydata.s2 = df.toy.1[,3], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.1[,1], zdata = df.toy.1[,2], ydata.s2 = df.toy.1[,3], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
   
-  # Run alternative models
-  dm.network.dea.pmsg(xdata.s1 = df.toy.1[,  1], zdata = df.toy.1[,  2], ydata.s2 = df.toy.1[,  3], rts = "vrs", orientation = "i", leader = "1st", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.1[,  1], zdata = df.toy.1[,  2], ydata.s2 = df.toy.1[,  3], rts = "vrs", orientation = "o", leader = "2nd", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.2[,  1], zdata = df.toy.2[,2:3], ydata.s2 = df.toy.2[,  4], rts = "vrs", orientation = "i", leader = "1st", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.2[,  1], zdata = df.toy.2[,2:3], ydata.s2 = df.toy.2[,  4], rts = "vrs", orientation = "o", leader = "2nd", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.3[,1:3], zdata = df.toy.3[,4:5], ydata.s2 = df.toy.3[,6:7], rts = "vrs", orientation = "i", leader = "1st", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.3[,1:3], zdata = df.toy.3[,4:5], ydata.s2 = df.toy.3[,6:7], rts = "vrs", orientation = "o", leader = "2nd", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st", pm = T)
-  dm.network.dea.pmsg(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "o", leader = "2nd", pm = T)
+  # Validation w toy.2
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.2[,1], zdata = df.toy.2[,2:3], ydata.s2 = df.toy.2[,4], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.2[,1], zdata = df.toy.2[,2:3], ydata.s2 = df.toy.2[,4], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
   
-  # Check zslacks
-  dm.dea(df.toy.1[,  1], df.toy.1[,  2], rts = "vrs", orientation = "i")$yslack
-  dm.dea(df.toy.1[,  2], df.toy.1[,  3], rts = "vrs", orientation = "o")$xslack
-  dm.dea(df.toy.2[,  1], df.toy.2[,2:3], rts = "vrs", orientation = "i")$yslack
-  dm.dea(df.toy.2[,2:3], df.toy.2[,  4], rts = "vrs", orientation = "i")$xslack
-  dm.dea(df.toy.3[,1:3], df.toy.3[,4:5], rts = "vrs", orientation = "i")$yslack
-  dm.dea(df.toy.3[,4:5], df.toy.3[,6:7], rts = "vrs", orientation = "i")$xslack
-  dm.dea(df.toy.4[,1:2], df.toy.4[,3:7], rts = "vrs", orientation = "i")$yslack
-  dm.dea(df.toy.4[,3:7], df.toy.4[,8:9], rts = "vrs", orientation = "i")$xslack
+  # Validation w toy.3
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.3[,1:3], zdata = df.toy.3[,4:5], ydata.s2 = df.toy.3[,6:7], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.3[,1:3], zdata = df.toy.3[,4:5], ydata.s2 = df.toy.3[,6:7], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
+  
+  # Validation w toy.4
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg.2(xdata.s1 = df.toy.4[,1:2], zdata = df.toy.4[,3:7], ydata.s2 = df.toy.4[,8:9], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
 }
-
-# Validation
-res.LF.i.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
-res.LF.i.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-
-res.LF.o.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = F)$eff.s2
-res.LF.o.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = T)$eff.s2
-
-res.FL.i.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = F)$eff.s1
-res.FL.i.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = T)$eff.s1
-
-res.FL.o.F <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = F)$eff.s1
-res.FL.o.T <- dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
 
 
 
@@ -224,9 +207,3 @@ table.4 <- data.frame(row.names = c(id.branch),
                       Eff.case3 = Eff.zboth,
                       Shift.Z1  = Z1slack,
                       Shift.Z2  = Z2slack)
-
-
-
-
-
-
