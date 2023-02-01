@@ -17,7 +17,7 @@ load("PMSG.Rdata")
 
 
 #########################################################################################################################
-### Analysis
+### Preliminary
 #########################################################################################################################
 
 # Proof of Concept
@@ -66,14 +66,10 @@ load("PMSG.Rdata")
   rts      <- "vrs"; orientation <- "o"; type <- "nc"; leader <- "2nd"; ss <- 10^-4; pm <- TRUE; o <- NULL
 
   # Validation w DB
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = F)$eff.s2
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "1st", pm = T)$eff.s2
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = F)$eff.s1
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "2nd", pm = T)$eff.s1
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = F)$eff.s1
-  dm.network.dea.pmsg.2(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
+  dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
+  dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "i", leader = "1st", pm = T)$eff.s2
+  dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = F)$eff.s1
+  dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], rts = "vrs", orientation = "o", leader = "2nd", pm = T)$eff.s1
   
   # Validation w toy.1
   dm.network.dea.pmsg.2(xdata.s1 = df.toy.1[,1], zdata = df.toy.1[,2], ydata.s2 = df.toy.1[,3], rts = "vrs", orientation = "i", leader = "1st", pm = F)$eff.s2
@@ -93,59 +89,42 @@ load("PMSG.Rdata")
 }
 
 
-
-# remove DMU 34 & 48
-df.db.46 <- df.db
-# df.db.46 <- df.db[-c(34, 48),]
-
-
-# Table 2. Comparative results of network efficiencies
-res.LF.io.conv <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
-                                      rts = "vrs", orientation = "i", leader = "1st", pm = F)
-res.LF.io.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
-                                      rts = "vrs", orientation = "i", leader = "1st", pm = T)
-res.FL.oo.conv <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
-                                      rts = "vrs", orientation = "o", leader = "2nd", pm = F)
-res.FL.oo.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db.46[,1:2], zdata = df.db.46[,3:4], ydata.s2 = df.db.46[,5:6], 
-                                      rts = "vrs", orientation = "o", leader = "2nd", pm = T)
-
-table.2 <- data.frame(DMU           = 1:nrow(df.db.46),
-                      Eff.L.io      = res.LF.io.conv$eff.s1,
-                      Eff.F.io.conv = res.LF.io.conv$eff.s2,
-                      Eff.F.io.pmsg = res.LF.io.pmsg$eff.s2,
-                      Sft.F.io.pmsg = res.LF.io.pmsg$z.shift,
-                      Eff.L.oo      = res.FL.oo.conv$eff.s2,
-                      Eff.F.oo.conv = res.FL.oo.conv$eff.s1,
-                      Eff.F.oo.pmsg = res.FL.oo.pmsg$eff.s1,
-                      Sft.F.oo.pmsg = res.FL.oo.pmsg$z.shift)
-
-
 #########################################################################################################################
 ### Analysis
 #########################################################################################################################
 
-#Table 2. Descriptive Statistics
-table.2 <- data.frame(Min  = round(apply(dbdata,2, "min")),
-                      Med  = round(apply(dbdata,2, "median")),
-                      Mean = round(apply(dbdata,2, "mean")),
-                      Max  = round(apply(dbdata,2, "max")),
-                      Std  = round(apply(dbdata,2, "sd")))
+# remove DMU 34 & 48
+df.db <- df.db[-c(34, 48),]
 
-#Table 3. Efficiency Comparison
 
-res.netDEA <- dm.network.dea.pmsg(dbdata[1:2],NULL,dbdata[,3:4],NULL,dbdata[,5:6], rts='vrs', 
-                                  orientation = 'i', type = 'nc')
-res.slack  <- dm.dea(dbdata[1:2],dbdata[,3:4], rts='vrs', 
-                     orientation = 'i')
-res.pmsg   <- dm.network.dea.pmsg(dbdata[1:2],NULL,dbdata[,3:4],NULL,dbdata[,5:6], rts='vrs', 
-                                  orientation = 'i', type = 'nc', pm = TRUE )
-table.3    <- data.frame(row.names     = rownames(dbdata),
-                         Eff.s1.NetDEA = res.netDEA$eff.s1,
-                         Eff.s2.NetDEA = res.netDEA$eff.s2,
-                         Slack         = res.slack$yslack,
-                         Eff.s1.PMSG   = res.pmsg$eff.s1,
-                         Eff.s2.PMSG   = res.pmsg$eff.s2,
-                         ZShift        = res.pmsg$z.shift)
+# Table 2. Descriptive Statistics
+table.1 <- data.frame(Min  = round(apply(df.db, 2, "min")),
+                      Med  = round(apply(df.db, 2, "median")),
+                      Mean = round(apply(df.db, 2, "mean")),
+                      Max  = round(apply(df.db, 2, "max")),
+                      Std  = round(apply(df.db, 2, "sd")))
+
+
+# Table 2. Comparative results of network efficiencies
+res.LF.io.conv <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], 
+                                      rts = "vrs", orientation = "i", leader = "1st", pm = F)
+res.LF.io.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], 
+                                      rts = "vrs", orientation = "i", leader = "1st", pm = T)
+res.FL.oo.conv <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], 
+                                      rts = "vrs", orientation = "o", leader = "2nd", pm = F)
+res.FL.oo.pmsg <- dm.network.dea.pmsg(xdata.s1 = df.db[,1:2], zdata = df.db[,3:4], ydata.s2 = df.db[,5:6], 
+                                      rts = "vrs", orientation = "o", leader = "2nd", pm = T)
+
+table.2 <- data.frame(DMU           = 1:nrow(df.db),
+                      Eff.L.io      = res.LF.io.conv$eff.s1,
+                      Eff.F.io.conv = res.LF.io.conv$eff.s2,
+                      Eff.F.io.pmsg = res.LF.io.pmsg$eff.s2,
+                      Adj.F.io.pmsg = res.LF.io.pmsg$z.shift,
+                      Eff.L.oo      = res.FL.oo.conv$eff.s2,
+                      Eff.F.oo.conv = res.FL.oo.conv$eff.s1,
+                      Eff.F.oo.pmsg = res.FL.oo.pmsg$eff.s1,
+                      Adj.F.oo.pmsg = res.FL.oo.pmsg$z.shift)
+
 
 # Calculation of 3 slack scenarios
 dbtest=dbdata
