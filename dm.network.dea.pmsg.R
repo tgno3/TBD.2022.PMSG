@@ -349,7 +349,7 @@ dm.network.dea.pmsg <-
           
           # Objective
           if(orientation == "o") set.objfn(lp.ndea, c(xdata.s2[k,], zdata[k,], 1), indices = c(id.v.s2, id.p, id.w.s2))
-          if(orientation == "i") set.objfn(lp.ndea, c(-ydata.s2[k,], 1, rep(M * max(res.u.s1.t[k,]), p)), indices = c(id.u.s2, id.w.s2, id.a))
+          if(orientation == "i") set.objfn(lp.ndea, c(-ydata.s2[k,], 1, rep(M * ifelse(max(res.u.s1.t[k,]) > 0, 1, 0), p)), indices = c(id.u.s2, id.w.s2, id.a))
           
           # CRS
           if(rts == "crs") add.constraint(lp.ndea, c(1, 1), indices = c(id.w.s1, id.w.s2), "=", 0)
@@ -470,7 +470,7 @@ dm.network.dea.pmsg <-
           dimnames(lp.ndea)[[2]] <- temp
           
           # Objective
-          if(orientation == "o") set.objfn(lp.ndea, c(xdata.s1[k,], 1, rep(M * max(res.v.s2.t[k,]), p)), indices = c(id.v.s1, id.w.s1, id.a))
+          if(orientation == "o") set.objfn(lp.ndea, c(xdata.s1[k,], 1, rep(M * ifelse(max(res.v.s2.t[k,]) > 0, 1, 0), p)), indices = c(id.v.s1, id.w.s1, id.a))
           if(orientation == "i") set.objfn(lp.ndea, c(-zdata[k,], if(is.null(ydata.s1)) NULL else -ydata.s1[k,], 1), indices = c(id.p, id.u.s1, id.w.s1))
           
           # CRS

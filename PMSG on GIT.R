@@ -93,10 +93,6 @@ load("PMSG.Rdata")
 ### Analysis
 #########################################################################################################################
 
-# remove DMU 34 & 48
-df.db <- df.db[-c(34, 48),]
-
-
 # Table 2. Descriptive Statistics
 table.1 <- data.frame(Min  = round(apply(df.db, 2, "min")),
                       Med  = round(apply(df.db, 2, "median")),
